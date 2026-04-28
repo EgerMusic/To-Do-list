@@ -8,13 +8,12 @@ def add_tasks():
         text_tasks = input('Введите Вашу задачу или exit для выхода из режима добавления задачи: ')
         if text_tasks.lower() == 'exit':
             return 'Вы вышли из режима добавления задач'  # выход из режима
+        elif not text_tasks.strip():
+            print('Пустой ввод')  # защита от пустых строк
         else:
             with open('tasks.txt', 'a', encoding='utf-8') as f:
-                if not text_tasks.strip():
-                    print('Пустой ввод')  # защита от пустых строк
-                else:
-                    f.write(text_tasks + '\n')  # добавление задачи в файл
-                    print('Задача добавлена')
+                f.write(text_tasks + '\n')  # добавление задачи в файл
+                print('Задача добавлена')
 
 def format_tasks():
     # преобразует список задач в строку с нумерацией
