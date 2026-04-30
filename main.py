@@ -2,6 +2,14 @@ def choice():
     # формирует текст меню и возвращает его
     return '1. Добавить задачу\n2. Посмотреть список задач\n3. Изменить задачу\n4. Удалить задачу\n5. Остановить программу'
 
+def load_tasks():
+    with open('tasks.txt', 'r', encoding='utf-8') as f:
+        return f.readlines()
+
+def save_tasks(tasks_list):
+    with open('tasks.txt', 'w', encoding='utf-8') as f:
+        f.writelines(tasks_list)
+
 def add_tasks():
     # режим добавления задач (работает в цикле до 'exit')
     while True:
@@ -11,37 +19,36 @@ def add_tasks():
         elif not text_tasks.strip():
             print('Пустой ввод')  # защита от пустых строк
         else:
-            with open('tasks.txt', 'a', encoding='utf-8') as f:
-                f.write(text_tasks + '\n')  # добавление задачи в файл
-                print('Задача добавлена')
+            tasks = load_tasks()
+            tasks.append(text_tasks + '\n')
+            print('Задача добавлена')
+            save_tasks(tasks)
 
-def format_tasks():
+
+def format_tasks(tasks):
     # преобразует список задач в строку с нумерацией
-    with open('tasks.txt', 'r', encoding='utf-8') as f:
-        return '\n'.join(f'{i}: {task_.strip()}' for i, task_ in enumerate(f, start=1))
+    return '\n'.join(f'{i}: {task_.strip()}' for i, task_ in enumerate(tasks, start=1))
 
 def list_task():
     # возвращает список задач или сообщение, если список пуст
-    with open('tasks.txt', 'r', encoding='utf-8') as f:
-        if not f.readline():
-            return 'Список задач пуст'
-    return format_tasks()
+    tasks = load_tasks()
+    if not tasks:
+        return 'Список задач пуст'
+    return format_tasks(tasks)
 
 def edit_task():
     # режим редактирования задач
     while True:
-        with open('tasks.txt', 'r', encoding='utf-8') as f:
-            tasks_list = f.readlines()
-            if not tasks_list:
-                return 'Список задач пуст'  # нет задач для редактирования
+        tasks_list = load_tasks()
+        if not tasks_list:
+            return 'Список задач пуст'  # нет задач для редактирования
 
         # вывод текущего списка
-        print('Ваш текущий список задач: ', format_tasks(), sep ='\n')
+        print('Ваш текущий список задач: ', format_tasks(tasks_list), sep ='\n')
 
         number = input('Выберите задачу для редактирования или введите exit для выхода из этого режима: ')
         if number.lower() == 'exit':
             return 'Вы вышли из режима редактирования'
-
         try:
             index = int(number) - 1  # перевод номера в индекс списка
             if 0 <= index < len(tasks_list):
@@ -50,8 +57,7 @@ def edit_task():
                     print('Пустой ввод')  # защита от пустого редактирования
                 else:
                     tasks_list[index] = text + '\n'  # обновление задачи
-                    with open('tasks.txt', 'w', encoding='utf-8') as f:
-                        f.writelines(tasks_list)
+                    save_tasks(tasks_list)
                     print('Задача обновлена')
             else:
                 print('Такой задачи нет в списке')
@@ -60,21 +66,19 @@ def edit_task():
 
 def delete_task():
     while True:
-        with open('tasks.txt', 'r', encoding='utf-8') as f:
-            tasks_list = f.readlines()
-            if not tasks_list:
-                return 'Список задач пуст'  # нечего удалять
+        tasks_list = load_tasks()
+        if not tasks_list:
+            return 'Список задач пуст'  # нечего удалять
 
         # вывод списка задач
-        print('Ваш список задач: ', format_tasks(), sep ='\n')
+        print('Ваш список задач: ', format_tasks(tasks_list), sep ='\n')
 
         # возможность удалить все задачи сразу
         number = input('''Удалить все задачи - введите "y";, 
 Выйти из режима удаления - "exit";
 Или выберите задачу для удаления: ''')
         if number.lower() == 'y':
-            with open('tasks.txt', 'w', encoding='utf-8'):
-                pass
+            save_tasks('')
             return 'Все задачи удалены'
 
         if number.lower() == 'exit':
@@ -84,8 +88,7 @@ def delete_task():
             index = int(number) - 1  # перевод номера в индекс
             if 0 <= index < len(tasks_list):
                 del tasks_list[index]  # удаление задачи по индексу
-                with open('tasks.txt', 'w', encoding='utf-8') as f:
-                    f.writelines(tasks_list)
+                save_tasks(tasks_list)
                 print('Задача удалена')
             else:
                 print('Такой задачи нет в списке')
