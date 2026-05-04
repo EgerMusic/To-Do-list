@@ -1,6 +1,6 @@
 def choice():
     # формирует текст меню и возвращает его
-    return '1. Добавить задачу\n2. Посмотреть список задач\n3. Изменить задачу\n4. Удалить задачу\n5. Остановить программу'
+    return '1. Добавить задачу\n2. Посмотреть список задач\n3. Изменить задачу\n4. Удалить задачу\n5. Изменить статус задачи\n6. Остановить программу'
 
 def load_tasks():
     with open('tasks.txt', 'r', encoding='utf-8') as f:
@@ -20,10 +20,9 @@ def add_tasks():
             print('Пустой ввод')  # защита от пустых строк
         else:
             tasks = load_tasks()
-            tasks.append(text_tasks + '\n')
+            tasks.append(text_tasks + ' | False\n')
             print('Задача добавлена')
             save_tasks(tasks)
-
 
 def format_tasks(tasks):
     # преобразует список задач в строку с нумерацией
@@ -56,7 +55,8 @@ def edit_task():
                 if not text.strip():
                     print('Пустой ввод')  # защита от пустого редактирования
                 else:
-                    tasks_list[index] = text + '\n'  # обновление задачи
+                    temp = tasks_list[index]
+                    tasks_list[index] = text + temp[temp.index('|') - 1:]   # Обновление задачи с учетом нового введенного текста плюс статус задачи (т.е. то, что идет после '|')
                     save_tasks(tasks_list)
                     print('Задача обновлена')
             else:
@@ -74,7 +74,7 @@ def delete_task():
         print('Ваш список задач: ', format_tasks(tasks_list), sep ='\n')
 
         # возможность удалить все задачи сразу
-        number = input('''Удалить все задачи - введите "y";, 
+        number = input('''Удалить все задачи - введите "y";
 Выйти из режима удаления - "exit";
 Или выберите задачу для удаления: ''')
         if number.lower() == 'y':
@@ -95,12 +95,53 @@ def delete_task():
         except ValueError:
             print('Вводить нужно номер задачи')
 
+def task_status():
+    while True:
+        tasks_list = load_tasks()
+        if not tasks_list:
+            return 'Список задач пуст'  # нечего менять
+
+        # вывод списка задач
+        print('Ваш список задач: ', format_tasks(tasks_list), sep='\n')
+
+        # возможность изменить все статусы сразу
+        number = input('''Изменить статусы всех задач все задачи на False (f) или True (t). Введите "f" или "t";
+Выйти из режима удаления - "exit";
+Или выберите задачу для изменения ее статуса: ''')
+        if number.lower() == 't':
+            temp = []
+            for t in tasks_list:
+                temp.append(t[:t.index('|') + 2] + 'True\n')
+            save_tasks(temp)
+        elif number.lower() == 'f':
+            temp = []
+            for t in tasks_list:
+                temp.append(t[:t.index('|') + 2] + 'False\n')
+            save_tasks(temp)
+        elif number.lower() == 'exit':
+            return 'Вы вышли из режима удаления'
+        else:
+            try:
+                index = int(number) - 1  # перевод номера в индекс
+                if 0 <= index < len(tasks_list):
+                    temp = tasks_list[index]
+                    if tasks_list[index].endswith('True\n'):
+                        tasks_list[index] = temp[:temp.index('|')+2] + 'False\n'
+                    else:
+                        tasks_list[index] = temp[:temp.index('|')+2] + 'True\n'
+                    save_tasks(tasks_list)
+                    print('Статус задачи изменен')
+                else:
+                    print('Такой задачи нет в списке')
+            except ValueError:
+                print('Вводить нужно номер задачи')
+
 def start(user_choice):
     with open('tasks.txt', 'a', encoding='utf-8'):
         pass
 
     # словарь: выбор пользователя -> функция
-    choice_dict = {'1': add_tasks, '2': list_task, '3': edit_task, '4': delete_task}
+    choice_dict = {'1': add_tasks, '2': list_task, '3': edit_task, '4': delete_task, '5': task_status}
 
     # получение функции по ключу
     func = choice_dict.get(user_choice)
@@ -112,7 +153,6 @@ def start(user_choice):
     # вызов выбранной функции с передачей списка задач
     return func()
 
-
 print('''------------------------------------------------------------------------------------------------------
 Добро пожаловать в задачник!
 Ниже представлен основной функционал программы (просьба выбрать действие по соответствующему ему номеру):''')
@@ -122,7 +162,7 @@ print(choice())  # вывод меню
 while True:
     task = input('Введите номер действия: ')
 
-    if task == '5':
+    if task == '6':
         print('Всего хорошего!')
         break
     else:
